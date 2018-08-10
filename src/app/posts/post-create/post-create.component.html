@@ -1,0 +1,18 @@
+<mat-card>
+    <form (submit)="onAddPost(postForm)" #postForm="ngForm">
+    <mat-form-field>
+    <!-- <input matInput type="text" [(ngModel)]="enteredTitle">   angular mat uses ngModel with name to identify  -->
+    <input matInput type="text" name="title" ngModel required minlength="3" #title="ngModel" placeholder="Post Title"/>
+    <mat-error *ngIf="title.invalid">Please enter a post title</mat-error>
+    </mat-form-field>
+<mat-form-field>
+    <!-- <textarea matInput rows="6" [(ngModel)]="enteredContent"></textarea> -->
+    <textarea matInput rows="6" name="content" ngModel required #content="ngModel" placeholder="Post Content"></textarea>
+    <mat-error *ngIf="content.invalid">Please enter post content</mat-error>
+</mat-form-field>
+<button 
+mat-raised-button 
+color="accent"
+type="submit" >Save Post</button>
+    </form>
+</mat-card>
