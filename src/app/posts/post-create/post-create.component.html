@@ -1,17 +1,25 @@
 <mat-card>
     <mat-spinner *ngIf="isLoading"></mat-spinner>
-    <form *ngIf="!isLoading" (submit)="onSavePost(postForm)" #postForm="ngForm">
+    <form  [formGroup]="form" *ngIf="!isLoading" (submit)="onSavePost()" >
     <mat-form-field>
     <!-- <input matInput type="text" [(ngModel)]="enteredTitle">   angular mat uses ngModel with name to identify  -->
     <!-- <input matInput type="text" name="title" ngModel required minlength="3" #title="ngModel" placeholder="Post Title"/>    changed when added editng, needed to bind-->
-    <input matInput type="text" name="title" [ngModel]='post?.title' required minlength="3" #title="ngModel" placeholder="Post Title"/>
-    <mat-error *ngIf="title.invalid">Please enter a post title</mat-error>
+    <!-- <input matInput type="text" name="title" [ngModel]='post?.title' required minlength="3" #title="ngModel" placeholder="Post Title"/>      changed when switching to reactive form -->
+    <input matInput type="text" formControlName="title"  placeholder="Post Title" />
+    <mat-error *ngIf="form.get('title').invalid">Please enter a post title</mat-error>
     </mat-form-field>
-<mat-form-field>
+    <mat-form-field>
     <!-- <textarea matInput rows="6" [(ngModel)]="enteredContent"></textarea> -->
-    <textarea matInput rows="6" name="content" [ngModel]='post?.content' required #content="ngModel" placeholder="Post Content"></textarea>
-    <mat-error *ngIf="content.invalid">Please enter post content</mat-error>
-</mat-form-field>
+    <textarea matInput rows="6" formControlName="content" placeholder="Post Content"></textarea>
+    <mat-error *ngIf="form.get('content').invalid">Please enter post content</mat-error>
+    </mat-form-field>
+    <div class="picker">
+        <button mat-stroked-button type="button" (click)="filePicker.click()">Upload Image</button>
+        <input type="file" #filePicker (change)="onImagePicked($event)">
+    </div>
+    <div *ngIf="imagePreview && form.get('image').valid" class="image-preview">
+        <img [src]="imagePreview" [alt]="form.value.title">
+    </div>
 <button 
 mat-raised-button 
 color="accent"

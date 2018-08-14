@@ -4,13 +4,16 @@ const bodyParser = require('body-parser');
 const postRoutes = require('./routes/posts');
 const mongoose = require('mongoose');
 const keys = require('./config/keys');
-
+const path = require('path');  //need to map backend/images to /images
 
 mongoose.Promise = global.Promise;
-mongoose.connect(keys.mongoURI).then(() => console.log('MongoDB connected')).catch(err => console.log(err));
+mongoose.connect(keys.mongoURI, { useNewUrlParser: true }).then(() => console.log('MongoDB connected')).catch(err => console.log(err));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
+
+//to make images folder accessible
+app.use('/images', express.static(path.join('backend/images')));  //any req targeting /images will be forwarded to backend/images and allowed to continue
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');

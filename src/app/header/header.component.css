@@ -12,3 +12,24 @@ a {
 .spacer {
     flex: 1 1 auto;
 }
+
+.brand, .post, .login {
+    font-weight: 300;
+    margin: 0 5px;
+}
+
+.post, .login {
+    color: #ff4081;
+    font-weight: 400;
+    margin: 0 5px;
+    font-size: 1rem;
+}
+
+.post:hover, .login:hover {
+    color: #ff4080be;
+}
+
+
+ul {
+    display: flex;
+}

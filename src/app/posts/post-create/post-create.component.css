@@ -13,3 +13,20 @@ button {
 mat-spinner {
     margin: auto;
 }
+
+input[type="file"] {
+    visibility: hidden;
+}
+
+.picker {
+    margin-bottom: 12px;
+}
+
+.image-preview {
+    height: 7rem;
+    margin: 1rem 0;
+}
+
+.image-preview img {
+    height: 100%;
+}

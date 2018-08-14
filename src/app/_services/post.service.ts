@@ -11,70 +11,75 @@ import { Router } from '@angular/router';
 })
 export class PostService {
   private posts: Post[] = [];
-  private postsUpdated = new Subject<Post[]>();
-  currentPostsUpdated = this.postsUpdated.asObservable()
+  private postsUpdated = new Subject<{ posts: Post[], postCount: number }>();
 
   constructor(private http: HttpClient, private router: Router) { }
 
-  getPosts() {
-    this.http.get<{message: string, posts: any}>('http://localhost:3000/api/posts')
+  getPosts(postsPerPage: number, currentPage: number) {
+    const queryParams = `?pagesize=${postsPerPage}&page=${currentPage}`;
+    this.http.get<{ message: string, posts: any, maxPosts: number }>('http://localhost:3000/api/posts' + queryParams)
     .pipe(map(postData => {
-      return postData.posts.map(p => {
+      return { posts: postData.posts.map(p => {
         return {
           title: p.title,
           content: p.content,
-          id: p._id
+          id: p._id,
+          imagePath: p.imagePath
         }
-      });
+      }),
+      maxPosts: postData.maxPosts };
     }))
-    .subscribe(transformedPosts => {  //returning posts now, not object with message and posts
-      this.posts = transformedPosts;
-      this.postsUpdated.next([...this.posts]);  //makes copy of array 
+    .subscribe(transformedPostsData => { 
+      this.posts = transformedPostsData.posts;
+      this.postsUpdated.next({ 
+        posts: [...this.posts], //makes copy of array, good practice here not to pass pointer
+        postCount: transformedPostsData.maxPosts });  
     })
   }
 
-  addPost(title: string, content: string) {
-    const post: Post = { id: null, title: title, content: content};  //can't be null...
-    this.http.post<{ message: string, postId: string }>('http://localhost:3000/api/posts', post).subscribe(responseData => {
-      post.id = responseData.postId;
-      this.posts.push(post);
-      this.postsUpdated.next([...this.posts]);
+  getPostUpdateListener() {
+    return this.postsUpdated.asObservable();
+  }
+
+  addPost(title: string, content: string, image: File) {
+    //const post: Post = { id: null, title: title, content: content};  //can't send a file with json
+    const postData = new FormData();
+    postData.append('title', title);
+    postData.append('content', content);
+    postData.append('image', image, title);  //third arg is file name to be saved on backend
+
+    this.http.post<{ message: string, post: Post }>('http://localhost:3000/api/posts', postData).subscribe(responseData => {
+      const post: Post = { id: responseData.post.id, title: title, content: content, imagePath: responseData.post.imagePath };
+      // this.posts.push(post);
+      // this.postsUpdated.next({ posts: [...this.posts]});  //going back to list where page is reloaded
       this.router.navigate(["/"]);
     })
   }
 
   getPost(id: string) {
     //return {...this.posts.find(p => p.id === id)};  //for edit page refresh we have to hit database, can't return in subscribe async method, so we have to return observable to subscribe to it in our component
-    return this.http.get<{ _id: string, title: string, content: string }>(`http://localhost:3000/api/posts/${id}`);
+    return this.http.get<{ _id: string, title: string, content: string, imagePath: string }>(`http://localhost:3000/api/posts/${id}`);
   }                                                  
 
 
-  editPost(id: string, title: string, content: string) {
-    const postToUpdate = { id, title, content };
-    this.http.patch(`http://localhost:3000/api/posts/${id}`, postToUpdate).subscribe(post => {
-      // this.posts = this.posts.map(p => {
-      //   if (p.id === id) {
-      //     return { 
-      //       ...p,
-      //       ...post
-      //     } 
-      //   } else {
-      //       return p
-      //     }
-      // })
-      // this.postsUpdated.next([...this.posts]);  *****this is for editing, but we are fetching every time we load list so we don't need this
-  
+  editPost(id: string, title: string, content: string, image: File | string) {
+    let postData: Post | FormData;
+   if (typeof(image) === 'object') {
+      postData = new FormData();
+    postData.append('id', id);
+    postData.append('title', title);
+    postData.append('content', content);
+    postData.append('image', image, title);
+   } else {
+      postData = { id, title, content, imagePath: image }
+   }
+    this.http.patch(`http://localhost:3000/api/posts/${id}`, postData).subscribe(post => {
       this.router.navigate(["/"]);
     })
   }
 
   deletePost(postId: string) {
-    this.http.delete(`http://localhost:3000/api/posts/${postId}`).subscribe((data) => { 
-      console.log(data);
-      const updatedPosts = this.posts.filter(p => p.id !== postId);
-      this.posts = updatedPosts;
-      this.postsUpdated.next([...this.posts]);
-     });
+    return this.http.delete(`http://localhost:3000/api/posts/${postId}`);
   }
 
 }
