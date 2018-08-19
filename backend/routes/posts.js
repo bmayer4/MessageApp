@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();  
 const Post = require('../models/post');
 const multer = require('multer');  //so you can extract images (can't do it with bodyParser)
+const authenticate = require('../middleware/check-auth');
 
 const MIME_TYPE_MAP = {
     "image/png": "png",
@@ -44,7 +45,7 @@ router.get('', (req, res) => {
             posts: fetchedPosts,
             maxPosts: count
             });
-    }).catch(e => res.status(400).json(e)); 
+    }).catch(e => res.status(400).json({ message: 'Error retrieving posts' })); 
 });
 
 
@@ -56,25 +57,26 @@ router.get('/:id', (req, res) => {
         //also, if there were no post and we did something to it like tried to push into an array it had, it would jump into catch error
         res.status(200).json(post);  //if we didn't check for !post, a wrong if (of same length) would cause this code to send back null object
     })
-    .catch(e => res.status(405).json(e));   //**** if invalid id (longer length) then it would fail with object id error (need to check for that), not hit !post in success 
+    .catch(e => res.status(405).json({ message: 'Error retrieving post' }));   //**** if invalid id (longer length) then it would fail with object id error (need to check for that), not hit !post in success 
 });
 
-router.post('', multer({storage: storage}).single('image'), (req, res) => {
+router.post('', authenticate, multer({storage: storage}).single('image'), (req, res) => {
     const url = req.protocol + '://' + req.get('host');
     const newPost = new Post({
         content: req.body.content,
         title: req.body.title,
-        imagePath: url + '/images/' + req.file.filename   //file.filename is provided by multer
+        imagePath: url + '/images/' + req.file.filename,   //file.filename is provided by multer
+        creator: req.userData.userId
     });
     newPost.save().then(post => res.status(200).json({message: 'Post added successfully', post: {
         ...post,
         id: post._id,   //could have returned post, but were remapping id here
     }}))
-    .catch(e => res.status(400).json(e));
+    .catch(e => res.status(400).json({ message: 'Unable to create post' }));
 });
 
-router.patch('/:id', multer({storage: storage}).single('image'), (req, res) => {
-    let imagePath = req.body.imagePath;
+router.patch('/:id', authenticate, multer({storage: storage}).single('image'), (req, res) => {
+    let imagePath = req.body.imagePath;  //would be a string if not updating image
     if (req.file) {
         const url = req.protocol + '://' + req.get('host');
         imagePath = url + '/images/' + req.file.filename;
@@ -82,19 +84,22 @@ router.patch('/:id', multer({storage: storage}).single('image'), (req, res) => {
     
     const title = req.body.title;
     const content = req.body.content;
-    console.log('imagePath is', imagePath);
-    Post.findOneAndUpdate({ _id: req.params.id }, { $set: { title, content, imagePath }}, { new: true }).then(post => {
+
+    Post.findOneAndUpdate({ _id: req.params.id, creator: req.userData.userId }, { $set: { title, content, imagePath }}, { new: true }).then(post => {
         if (!post) {
-            return res.status(404).json({ message: 'Post not found'});
+            return res.status(404).json({ message: 'Unable to update'});
         }
         res.status(200).json(post);
-    }).catch(e => res.json(e));
+    }).catch(e => res.json({ message: 'Unable to update post' }));
 });
 
-router.delete('/:id', (req, res) => {
-    Post.deleteOne({_id: req.params.id}).then(result => {
+router.delete('/:id', authenticate, (req, res) => {  //https://stackoverflow.com/questions/42715591/mongodb-difference-remove-vs-findoneanddelete-vs-deleteone
+    Post.findOneAndRemove({ _id: req.params.id, creator: req.userData.userId }).then(post => {
+        if (!post) {
+            return res.status(404).json({ message: 'Unable to delete post'});
+        }
         res.status(200).json({message: 'Post deleted!'})
-    }).catch(e => res.status(404).json({ error: 'Unable to delete post' }));
+    }).catch(e => res.status(404).json({ message: 'Unable to delete post' }));
 });
 
 module.exports = router;

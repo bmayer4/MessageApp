@@ -1,10 +1,18 @@
 <mat-toolbar color="primary">
     <span class="brand"><a routerLink='/'>MessageBook</a></span>
     <span class="spacer"></span>
-    <ul>
+
+    <ul *ngIf="isAuth">
         <li>
+            <!-- <a class="post" routerLink='/create' routerLinkActive='mat-accent'>{{ this.authService?.decoded?.email }}New Post</a> -->
             <a class="post" routerLink='/create' routerLinkActive='mat-accent'>New Post</a>
         </li>
+        <li>
+            <button mat-button (click)="onLogout()">Logout</button>
+        </li>
+    </ul>
+
+    <ul *ngIf="!isAuth">
         <li>
             <a class="login" routerLink='/login' routerLinkActive='mat-accent'>Log In</a>
         </li>

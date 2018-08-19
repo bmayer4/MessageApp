@@ -1,17 +1,47 @@
-<mat-card>
+<!-- <mat-card>
   <mat-spinner *ngIf="isLoading"></mat-spinner>
-  <form #signupForm="ngForm" (submit)="onSignup(signupForm)" *ngIf="!isLoading" >
+  <form [formGroup]="form" (submit)="onSignup()" *ngIf="!isLoading" >
   <mat-form-field>
-  <input matInput type="email" placeholder="Email Address" name="email" ngModel #emailInput="ngModel" required email />
-  <mat-error *ngIf="emailInput.invalid">Please enter a valid email</mat-error>
+  <input matInput type="email" placeholder="Email Address" formControlName="email" />
+  <mat-error *ngIf="form.get('email').hasError('required')">Email required</mat-error>
+  <mat-error *ngIf="form.get('email').hasError('email')">Please enter a valid email</mat-error>
   </mat-form-field>
   <mat-form-field>
-  <input type="password" matInput placeholder="Password" name="password" ngModel #passwordInput="ngModel" required>
-  <mat-error *ngIf="passwordInput.invalid">Please enter a valid password</mat-error>
+  <input type="password" matInput placeholder="Password" formControlName="password">
+  <mat-error *ngIf="form.get('password').hasError('required')">Password required</mat-error>
+  <mat-error *ngIf="form.get('password').hasError('minlength') || form.get('password').hasError('maxlength')">Please enter a password between 4 and 12 characters</mat-error>
+  </mat-form-field>
+  <mat-form-field>
+    <input type="password" matInput placeholder="Confirm Password" formControlName="confirmPassword">
+    <mat-error *ngIf="form.get('confirmPassword').hasError('required')">Confirm password required</mat-error>
+    <mat-error *ngIf="form.get('confirmPassword').hasError('mismatch')">Passwords must match</mat-error>
   </mat-form-field>
 <button 
 mat-raised-button 
 color="accent"
 type="submit" >Sign Up</button>
+  </form>
+</mat-card> -->
+
+<mat-card>
+  <mat-spinner *ngIf="isLoading"></mat-spinner>
+  <form [formGroup]="form" (submit)="onSignup()" *ngIf="!isLoading">
+    <mat-form-field>
+      <input matInput type="email" formControlName="email" placeholder="Email">
+      <mat-error *ngIf="form.get('email').invalid">Please enter a valid email</mat-error>
+    </mat-form-field>
+    <div formGroupName="passwords">
+      <mat-form-field>
+        <input matInput type="password" formControlName="password" placeholder="Password">
+        <mat-error *ngIf="form.get('passwords.password').invalid">Password must be between 4 and 12 characters</mat-error>
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput type="password" formControlName="confirmPassword" placeholder="Password confirm">
+        <mat-error *ngIf="form.get('passwords.confirmPassword').invalid">Confirm password must be between 4 and 12 characters</mat-error>
+        <mat-error *ngIf="checkPasswordMatch()">Passwords do not match</mat-error>
+      </mat-form-field>
+      <mat-error *ngIf="checkPasswordMatch()">Passwords do not match</mat-error>
+    </div>
+    <button mat-raised-button color="accent" type="submit" *ngIf="!isLoading">Signup</button>
   </form>
 </mat-card>

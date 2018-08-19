@@ -5,3 +5,17 @@ mat-form-field {
 mat-spinner {
     margin: auto;
 }
+
+.error {
+    color: #f44336;
+    font-size: 75%;
+}
+
+mat-error {
+    font-size: 12px;
+}
+
+.mat-raised-button {
+    margin-top: 20px;
+  }
+  

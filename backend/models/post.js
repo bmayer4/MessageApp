@@ -12,7 +12,12 @@ const postSchema = mongoose.Schema({
     imagePath: {
         type: String,
         require: true
+    },
+    creator: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',     //which model
+        required: true,
     }
 });
 
-module.exports = mongoose.model('Pos', postSchema);
+module.exports = mongoose.model('Post', postSchema);

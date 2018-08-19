@@ -1,17 +1,19 @@
-import { Component, OnInit, EventEmitter } from '@angular/core';
+import { Component, OnInit, EventEmitter, OnDestroy } from '@angular/core';
 import { NgForm, FormGroup, FormControl, Validators } from '@angular/forms';
 
 import { PostService } from '../../_services/post.service';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { Post } from '../../models/post.model';
 import { mimeType } from './mime-type.validator';
+import { AuthService } from '../../_services/auth.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-post-create',
   templateUrl: './post-create.component.html',
   styleUrls: ['./post-create.component.css']
 })
-export class PostCreateComponent implements OnInit {
+export class PostCreateComponent implements OnInit, OnDestroy {
 
   enteredTitle = '';
   enteredContent = '';
@@ -19,12 +21,17 @@ export class PostCreateComponent implements OnInit {
   isLoading = false;
   form: FormGroup;
   imagePreview: string | any;
-  mode = 'create';
+  private mode = 'create';
   private postId: string;
+  private authStatusSub: Subscription;
 
-  constructor(private postService: PostService, private route: ActivatedRoute, private router: Router) { }
+  constructor(private postService: PostService, private route: ActivatedRoute, private router: Router, private authService: AuthService) { }
 
   ngOnInit() {
+
+    this.authStatusSub = this.authService.getAuthStatusListener().subscribe(isAuth => {
+      this.isLoading = false; //whenever status changes
+    });
 
     this.form = new FormGroup({
       title: new FormControl(null, { validators: [Validators.required, Validators.minLength(3)] }),
@@ -42,13 +49,13 @@ export class PostCreateComponent implements OnInit {
         this.postId = paramMap.get('postId');
         this.isLoading = true;
         this.postService.getPost(this.postId).subscribe(postData => {  //don't need to unsubscribe from observable, angular takes care of it
+        if (postData.creator != this.authService.getUserId()) { this.router.navigate(['/']); }
         this.isLoading = false;
         this.imagePreview = postData.imagePath;
-        this.post = { id: postData._id, title: postData.title, content: postData.content, imagePath: postData.imagePath };  
+        this.post = { id: postData._id, title: postData.title, content: postData.content, imagePath: postData.imagePath, creator: postData.creator };  
         this.form.setValue({ title: this.post.title, content: this.post.content, image: this.post.imagePath });  //lets us override initial values set in new FormGroup
         }, (e) => { 
           this.isLoading = false;
-          console.log(e.error.message); //from server
           this.router.navigate(["/"]); 
         }); 
 
@@ -57,6 +64,10 @@ export class PostCreateComponent implements OnInit {
         this.postId = null;
       }
     });
+  }
+
+  ngOnDestroy() {
+    this.authStatusSub.unsubscribe();
   }
 
 

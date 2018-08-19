@@ -9,12 +9,9 @@
   <input type="password" matInput placeholder="Password" name="password" ngModel #passwordInput="ngModel" required>
   <mat-error *ngIf="passwordInput.invalid">Please enter a valid password</mat-error>
   </mat-form-field>
-<button 
-mat-raised-button 
-color="accent"
-type="submit" >Login</button>
-  </form>
+<button mat-raised-button color="accent" type="submit" *ngIf="!isLoading">Login</button>
+</form>
 </mat-card>
 
 <!-- [ngClass]="{'banana': emailInput.errors?.email}-->
-<!-- add-client in clientpabel uses #emailInput.errors abut you can't see errors on form, because it is a form -->
+<!-- add-client in clientpanel uses #emailInput.errors but you can't see errors on form, because it is a form -->
