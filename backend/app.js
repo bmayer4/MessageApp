@@ -16,7 +16,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 
 //to make images folder accessible
-app.use('/images', express.static(path.join('backend/images')));  //any req targeting /images will be forwarded to backend/images and allowed to continue
+// app.use('/images', express.static(path.join(__dirname, 'backend/images')));  //any req targeting /images will be forwarded to backend/images and allowed to continue
+app.use('/images', express.static(path.join(__dirname, 'images')));  //any req targeting /images will be forwarded to backend/images and allowed to continue
+app.use('/', express.static(path.join(__dirname, 'angular')));
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -28,6 +30,9 @@ app.use((req, res, next) => {
 
 app.use('/api/posts', postRoutes);
 app.use('/api/user', userRoutes);
+app.use((req, res) => {
+    res.sendFile(path.join(__dirname, 'angular', 'index.html'));
+})
 
 
 module.exports = app;
