@@ -5,6 +5,9 @@ import jwt_decode from 'jwt-decode';
 
 import { AuthData } from '../models/auth-data.model';
 import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
+
+const BACKEND_URL = environment.apiUrl + 'user/';
 
 @Injectable({
   providedIn: 'root'
@@ -38,7 +41,7 @@ export class AuthService {
 
   createUser(email: string, password: string) {
     const authData: AuthData = { email, password };
-    this.http.post('http://localhost:3000/api/user/signup', authData).subscribe(() => {
+    this.http.post(BACKEND_URL + 'signup/', authData).subscribe(() => {
       this.router.navigate(['/login']);
     }, err => {
       this.authStatusListener.next(false);
@@ -47,7 +50,7 @@ export class AuthService {
 
   loginUser(email: string, password: string) {
     const authData: AuthData = { email, password };
-    this.http.post<{ token: string, expiresIn: number, userId: string }>('http://localhost:3000/api/user/login', authData).subscribe(response => {
+    this.http.post<{ token: string, expiresIn: number, userId: string }>(BACKEND_URL + 'login/', authData).subscribe(response => {
       this.token = response.token;
       if (this.token) {
         //this.decoded = jwt_decode(response.token);  //teacher says decoding on front end is more work, send info from back end
@@ -64,6 +67,7 @@ export class AuthService {
       }
     }, err => {
       this.authStatusListener.next(false);
+      console.log('error logging in'); //I can handle error here even though I have an error interceptor
     })
   }
 

@@ -40,3 +40,4 @@ Thumbs.db
 
 # added by me
 backend/config/dev.js
+nodemon.json

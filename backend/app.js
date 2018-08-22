@@ -8,7 +8,9 @@ const keys = require('./config/keys');
 const path = require('path');  //need to map backend/images to /images
 
 mongoose.Promise = global.Promise;
-mongoose.connect(keys.mongoURI, { useNewUrlParser: true }).then(() => console.log('MongoDB connected')).catch(err => console.log(err));
+// mongoose.connect(process.env.MONGOURI, { useNewUrlParser: true }).then(() => console.log('MongoDB connected')).catch(err => console.log(err));
+mongoose.connect(process.env.MONGOURI).then(() => console.log('MongoDB connected')).catch(err => console.log(err));
+
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));

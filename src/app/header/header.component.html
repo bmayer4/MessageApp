@@ -2,17 +2,19 @@
     <span class="brand"><a routerLink='/'>MessageBook</a></span>
     <span class="spacer"></span>
 
+    <!-- <ul *ngIf="this.authService?.getIsAuth()"> this works also, no listener --> 
     <ul *ngIf="isAuth">
         <li>
             <!-- <a class="post" routerLink='/create' routerLinkActive='mat-accent'>{{ this.authService?.decoded?.email }}New Post</a> -->
             <a class="post" routerLink='/create' routerLinkActive='mat-accent'>New Post</a>
         </li>
         <li>
-            <button mat-button (click)="onLogout()">Logout</button>
+            <a class="post" (click)="onLogout()">Log Out</a>
         </li>
     </ul>
 
-    <ul *ngIf="!isAuth">
+    <!-- <ul *ngIf="!this.authService?.getIsAuth()"></ul> this works also-->
+    <ul *ngIf="!isAuth"> 
         <li>
             <a class="login" routerLink='/login' routerLinkActive='mat-accent'>Log In</a>
         </li>
